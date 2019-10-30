@@ -11,7 +11,7 @@ async function run() {
     } 
     const pullRequestUrl:string = github.context.payload.issue.pull_request.url;
 
-    const pullRequest = await fetch(pullRequestUrl)
+    const pullRequest = await fetch(pullRequestUrl).then(data => data.json())
 
     console.log(`PR payload: \n ${pullRequest}!`);
 
