@@ -37,7 +37,7 @@ async function run() {
         myError += data.toString();
       }
     };
-    await exec.exec('git', ['config', 'user.name'], options);
+    await exec.exec('git', ['merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs'], options);
 
 
     const time = (new Date()).toTimeString();
