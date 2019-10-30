@@ -22,7 +22,6 @@
     "@actions/core": "^1.2.0",
     "@actions/github": "^1.1.0",
     "@types/node-fetch": "^2.5.2",
-    "@types/whatwg-fetch": "^0.0.33",
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
