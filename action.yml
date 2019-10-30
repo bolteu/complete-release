@@ -1,10 +1,10 @@
 name: 'Complete release'
 description: 'Complete release'
 inputs:
-  number:  # id of input
-    description: 'Number of pull request. Can be found in github.event.issue.number'
+  github-token:  # id of input
+    description: 'Github api token if you want to fetch private repo'
     required: true
-    default: 'World'
+    default: null
 outputs:
   time: # id of output
     description: 'The time we greeted you'

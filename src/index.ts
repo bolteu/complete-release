@@ -9,7 +9,12 @@ async function run() {
         message: "This action can only be executed from PR or Issue"
       }
     } 
-    const pullRequestUrl:string = github.context.payload.issue.pull_request.url;
+    let pullRequestUrl:string = github.context.payload.issue.pull_request.url;
+    const githubApiToken:string | null = core.getInput('github-token');
+
+    if (githubApiToken !== null) {
+      pullRequestUrl = pullRequestUrl.replace("api.github.com", `${githubApiToken}@api.github.com`);
+    }
 
     console.log(`Fetching PR info by url: ${pullRequestUrl}`);
     const pullRequest = await fetch(pullRequestUrl).then(data => data.json())
