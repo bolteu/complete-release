@@ -1,0 +1,13 @@
+name: 'Complete release'
+description: 'Complete release'
+inputs:
+  number:  # id of input
+    description: 'Number of pull request. Can be found in github.event.issue.number'
+    required: true
+    default: 'World'
+outputs:
+  time: # id of output
+    description: 'The time we greeted you'
+runs:
+  using: 'node12'
+  main: 'lib/index.js'
