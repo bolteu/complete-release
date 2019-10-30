@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import fetch from 'node-fetch';
 
 async function run() {
   try {
@@ -19,6 +20,6 @@ async function run() {
   } catch (error) {
     core.setFailed(error.message);
   }
-}
+};
 
 run();
