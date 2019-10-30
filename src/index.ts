@@ -13,7 +13,7 @@ async function run() {
 
     const pullRequest = await fetch(pullRequestUrl).then(data => data.json())
 
-    console.log(`PR payload: \n ${pullRequest}!`);
+    console.log(`PR payload: \n ${JSON.stringify(pullRequest)}!`);
 
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);
