@@ -10,15 +10,19 @@ async function run() {
         message: "This action can only be executed from PR or Issue"
       }
     } 
-    let pullRequestUrl:string = github.context.payload.issue.pull_request.url;
+    let pullRequestApiUrl:string = github.context.payload.issue.pull_request.url;
+    let pullRequestHtmlUrl:string = github.context.payload.issue.pull_request.base.repo.html_url;
     const githubApiToken:string | null = core.getInput('github-token');
+    const githubUserName:string | null = core.getInput('github-user-name');
+    const githubUserEmail:string | null = core.getInput('github-user-email');
 
     if (githubApiToken !== null) {
-      pullRequestUrl = pullRequestUrl.replace("api.github.com", `${githubApiToken}@api.github.com`);
+      pullRequestApiUrl = pullRequestApiUrl.replace("api.github.com", `${githubApiToken}@api.github.com`);
+      pullRequestHtmlUrl = pullRequestHtmlUrl.replace("github.com", `${githubApiToken}@github.com`);
     }
 
-    console.log(`Fetching PR info by url: ${pullRequestUrl}`);
-    const pullRequest = await fetch(pullRequestUrl).then(data => data.json())
+    console.log(`Fetching PR info by url: ${pullRequestApiUrl}`);
+    const pullRequest = await fetch(pullRequestApiUrl).then(data => data.json())
 
     console.log(`PR payload: \n ${JSON.stringify(pullRequest)}!`);
 
@@ -28,16 +32,28 @@ async function run() {
     let myOutput = '';
     let myError = '';
 
-    const options:any = {};
-    options.listeners = {
-      stdout: (data: Buffer) => {
-        myOutput += data.toString();
-      },
-      stderr: (data: Buffer) => {
-        myError += data.toString();
+    const options = {
+      listeners: {
+        stdout: (data: Buffer) => {
+          myOutput += data.toString();
+        },
+        stderr: (data: Buffer) => {
+          myError += data.toString();
+        }
       }
-    };
+    }
+
+    if (githubUserName) {
+      await exec.exec('git', ['config', '--global', 'user.name', `"${githubUserName}"`]);
+    }
+
+    if (githubUserEmail) {
+      await exec.exec('git', ['config', '--global', 'user.email', `"${githubUserName}"`]);
+    }
+    
+    await exec.exec('git', ['checkout', '-B', baseRef]);
     await exec.exec('git', ['merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs'], options);
+    await exec.exec('git', ['push', pullRequestHtmlUrl])
 
 
     const time = (new Date()).toTimeString();

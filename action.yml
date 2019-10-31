@@ -5,6 +5,18 @@ inputs:
     description: 'Github api token if you want to fetch private repo'
     required: true
     default: null
+  github-user-name:
+    description: 'Github user name'
+    required: false
+    default: null
+  github-user-email:
+    description: 'Github user email'
+    required: false
+    default: null
+  strategy-option:
+    description: '--strategy-option'
+    required: false
+    default: ''
 outputs:
   time: # id of output
     description: 'The time we greeted you'
