@@ -50,8 +50,6 @@ async function run() {
     // await exec.exec('git', ['push', pullRequestHtmlUrl]);
 
     if (shouldTagBaseBranch) {
-      await exec.exec('ls', ['-l']);
-
       if (!tag) {
         let myOutput = '';
         let myError = '';
@@ -67,7 +65,7 @@ async function run() {
           }
         }
 
-        await exec.exec("jq", [".version", "<", "package.json"], options);
+        await exec.exec("jq", ["-r", ".version", "package.json"], options);
         tag = `v${myOutput}`;
         myError && console.warn(myError)
       }
