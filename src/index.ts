@@ -68,7 +68,7 @@ async function run() {
         }
 
         await exec.exec("jq", ["-r", ".version", "package.json"], options);
-        tag = `v${myOutput}`;
+        tag = `v${myOutput.trim()}`;
         myError && console.warn(myError)
       }
       console.log(`tag: ${tag}`);

@@ -5,7 +5,7 @@
   "description": "Complete release",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "ncc build src/index.ts -m"
   },
   "repository": {
     "type": "git",
