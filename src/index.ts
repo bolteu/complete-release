@@ -11,15 +11,18 @@ async function run() {
       }
     } 
     let pullRequestApiUrl:string = github.context.payload.issue.pull_request.url;
-    const githubApiToken:string | null = core.getInput('github-token');
-    const githubUserName:string | null = core.getInput('github-user-name');
-    const githubUserEmail:string | null = core.getInput('github-user-email');
+    const githubApiToken:string = core.getInput('github-token');
+    const shouldShowPrInfo:string = core.getInput('should-show-PR-response-data');
+    const githubUserName:string = core.getInput('github-user-name');
+    const githubUserEmail:string = core.getInput('github-user-email');
+    let tag:string = core.getInput('tag');
+    const shouldTagBaseBranch:string = core.getInput('should-tag-base-branch');
 
     if (githubApiToken !== null) {
       pullRequestApiUrl = pullRequestApiUrl.replace("api.github.com", `${githubApiToken}@api.github.com`);
     }
 
-    console.log(`Fetching PR info by url: ${pullRequestApiUrl}`);
+    shouldShowPrInfo && console.log(`Fetching PR info by url: ${pullRequestApiUrl}`);
     const pullRequest = await fetch(pullRequestApiUrl).then(data => data.json())
 
     let pullRequestHtmlUrl:string = pullRequest.base.repo.html_url;
@@ -28,7 +31,7 @@ async function run() {
       pullRequestHtmlUrl = pullRequestHtmlUrl.replace("github.com", `${githubApiToken}@github.com`);
     }
 
-    console.log(`PR payload: \n ${JSON.stringify(pullRequest)}!`);
+    shouldShowPrInfo && console.log(`PR payload: \n ${JSON.stringify(pullRequest)}!`);
 
     const headRef:string = pullRequest.head.ref;
     const baseRef:string = pullRequest.base.ref;
@@ -55,9 +58,18 @@ async function run() {
       await exec.exec('git', ['config', '--global', 'user.email', `"${githubUserName}"`]);
     }
     
-    await exec.exec('git', ['checkout', '-B', baseRef]);
+    await exec.exec('git', ['checkout', baseRef]);
     await exec.exec('git', ['merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs'], options);
-    await exec.exec('git', ['push', pullRequestHtmlUrl])
+
+    await exec.exec('git', ['push', pullRequestHtmlUrl]);
+
+    if (shouldTagBaseBranch) {
+      const pjson = require('./package.json');
+      tag = tag || `v${pjson.version}`
+
+      await exec.exec('git', ['tag', tag]);
+      await exec.exec('git', ['push', pullRequestHtmlUrl, tag]);
+    }
 
 
     const time = (new Date()).toTimeString();
