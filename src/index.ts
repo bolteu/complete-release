@@ -67,7 +67,7 @@ async function run() {
           }
         }
 
-        await exec.exec("jq", ["'.version'", "<", "package.json"], options);
+        await exec.exec("jq", [".version", "<", "package.json"], options);
         tag = `v${myOutput}`;
         myError && console.warn(myError)
       }
