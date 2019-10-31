@@ -11,18 +11,22 @@ async function run() {
       }
     } 
     let pullRequestApiUrl:string = github.context.payload.issue.pull_request.url;
-    let pullRequestHtmlUrl:string = github.context.payload.issue.pull_request.base.repo.html_url;
     const githubApiToken:string | null = core.getInput('github-token');
     const githubUserName:string | null = core.getInput('github-user-name');
     const githubUserEmail:string | null = core.getInput('github-user-email');
 
     if (githubApiToken !== null) {
       pullRequestApiUrl = pullRequestApiUrl.replace("api.github.com", `${githubApiToken}@api.github.com`);
-      pullRequestHtmlUrl = pullRequestHtmlUrl.replace("github.com", `${githubApiToken}@github.com`);
     }
 
     console.log(`Fetching PR info by url: ${pullRequestApiUrl}`);
     const pullRequest = await fetch(pullRequestApiUrl).then(data => data.json())
+
+    let pullRequestHtmlUrl:string = pullRequest.base.repo.html_url;
+
+    if (githubApiToken !== null) {
+      pullRequestHtmlUrl = pullRequestHtmlUrl.replace("github.com", `${githubApiToken}@github.com`);
+    }
 
     console.log(`PR payload: \n ${JSON.stringify(pullRequest)}!`);
 
