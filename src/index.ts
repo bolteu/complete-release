@@ -3,6 +3,8 @@ import * as github from '@actions/github';
 import * as exec from '@actions/exec';
 import fetch from 'node-fetch';
 
+const gitExec = (...gitOptionArray:string[]) => exec.exec('git', [...gitOptionArray]);
+
 async function run() {
   try {
     if (!github.context.payload.issue) {
@@ -37,17 +39,17 @@ async function run() {
     const baseRef:string = pullRequest.base.ref;
 
     if (githubUserName) {
-      await exec.exec('git', ['config', '--global', 'user.name', `"${githubUserName}"`]);
+      await gitExec('config', '--global', 'user.name', `"${githubUserName}"`);
     }
 
     if (githubUserEmail) {
-      await exec.exec('git', ['config', '--global', 'user.email', `"${githubUserName}"`]);
+      await gitExec('config', '--global', 'user.email', `"${githubUserName}"`);
     }
     
-    await exec.exec('git', ['checkout', baseRef]);
-    // await exec.exec('git', ['merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs'], options);
+    await gitExec('checkout', baseRef);
+    await gitExec('merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
 
-    // await exec.exec('git', ['push', pullRequestHtmlUrl]);
+    await gitExec('push', pullRequestHtmlUrl);
 
     if (shouldTagBaseBranch) {
       if (!tag) {
@@ -70,8 +72,8 @@ async function run() {
         myError && console.warn(myError)
       }
       console.log(`tag: ${tag}`);
-      // await exec.exec('git', ['tag', tag]);
-      // await exec.exec('git', ['push', pullRequestHtmlUrl, tag]);
+      await gitExec('tag', tag);
+      await gitExec('push', pullRequestHtmlUrl, tag);
     }
 
 
