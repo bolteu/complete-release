@@ -36,20 +36,6 @@ async function run() {
     const headRef:string = pullRequest.head.ref;
     const baseRef:string = pullRequest.base.ref;
 
-    let myOutput = '';
-    let myError = '';
-
-    const options = {
-      listeners: {
-        stdout: (data: Buffer) => {
-          myOutput += data.toString();
-        },
-        stderr: (data: Buffer) => {
-          myError += data.toString();
-        }
-      }
-    }
-
     if (githubUserName) {
       await exec.exec('git', ['config', '--global', 'user.name', `"${githubUserName}"`]);
     }
@@ -59,16 +45,35 @@ async function run() {
     }
     
     await exec.exec('git', ['checkout', baseRef]);
-    await exec.exec('git', ['merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs'], options);
+    // await exec.exec('git', ['merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs'], options);
 
-    await exec.exec('git', ['push', pullRequestHtmlUrl]);
+    // await exec.exec('git', ['push', pullRequestHtmlUrl]);
 
     if (shouldTagBaseBranch) {
-      const pjson = require('./package.json');
-      tag = tag || `v${pjson.version}`
+      await exec.exec('ls', ['-l']);
 
-      await exec.exec('git', ['tag', tag]);
-      await exec.exec('git', ['push', pullRequestHtmlUrl, tag]);
+      if (!tag) {
+        let myOutput = '';
+        let myError = '';
+    
+        const options = {
+          listeners: {
+            stdout: (data: Buffer) => {
+              myOutput += data.toString();
+            },
+            stderr: (data: Buffer) => {
+              myError += data.toString();
+            }
+          }
+        }
+
+        await exec.exec("jq", ["'.version'", "<", "package.json"], options);
+        tag = `v${myOutput}`;
+        myError && console.warn(myError)
+      }
+      console.log(`tag: ${tag}`);
+      // await exec.exec('git', ['tag', tag]);
+      // await exec.exec('git', ['push', pullRequestHtmlUrl, tag]);
     }
 
 
