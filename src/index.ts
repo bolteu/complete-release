@@ -14,7 +14,6 @@ async function run() {
     } 
     let pullRequestApiUrl:string = github.context.payload.issue.pull_request.url;
     const githubApiToken:string = core.getInput('github-token');
-    const shouldShowPrInfo:string = core.getInput('should-show-PR-response-data');
     const githubUserName:string = core.getInput('github-user-name');
     const githubUserEmail:string = core.getInput('github-user-email');
     let tag:string = core.getInput('tag');
@@ -24,7 +23,6 @@ async function run() {
       pullRequestApiUrl = pullRequestApiUrl.replace("api.github.com", `${githubApiToken}@api.github.com`);
     }
 
-    shouldShowPrInfo && console.log(`Fetching PR info by url: ${pullRequestApiUrl}`);
     const pullRequest = await fetch(pullRequestApiUrl).then(data => data.json())
 
     let pullRequestHtmlUrl:string = pullRequest.base.repo.html_url;
@@ -32,8 +30,6 @@ async function run() {
     if (githubApiToken !== null) {
       pullRequestHtmlUrl = pullRequestHtmlUrl.replace("github.com", `${githubApiToken}@github.com`);
     }
-
-    shouldShowPrInfo && console.log(`PR payload: \n ${JSON.stringify(pullRequest)}!`);
 
     const headRef:string = pullRequest.head.ref;
     const baseRef:string = pullRequest.base.ref;
@@ -43,7 +39,7 @@ async function run() {
     }
 
     if (githubUserEmail) {
-      await gitExec('config', '--global', 'user.email', `"${githubUserName}"`);
+      await gitExec('config', '--global', 'user.email', `"${githubUserEmail}"`);
     }
     
     await gitExec('checkout', baseRef);

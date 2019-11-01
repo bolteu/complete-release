@@ -13,14 +13,6 @@ inputs:
     description: 'Github user email'
     required: false
     default: null
-  strategy-option:
-    description: '--strategy-option'
-    required: false
-    default: ''
-  should-show-PR-response-data:
-    description: 'If set to true - will print info about PR in logs'
-    required: false
-    default: ''
   should-tag-base-branch:
     description: 'Tag base branch after merging. If `tag` parameter is not set - will use version from package.json'
     required: false
