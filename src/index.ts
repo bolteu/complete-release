@@ -44,7 +44,14 @@ async function run() {
     
     await gitExec('checkout', baseRef);
     await gitExec('merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
+
+    console.log("Checking files that only exist in master bracnh and should be deleted.");
+    await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`);
+
+    console.log("Deleting files.");
     await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
+
+    console.log("Ammending deleted files to merge commit");
     await gitExec('commit', '--amend', '--no-edit');
 
     await gitExec('push', pullRequestHtmlUrl);
