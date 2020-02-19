@@ -5,6 +5,10 @@ import fetch from 'node-fetch';
 
 const gitExec = (...gitOptionArray:string[]) => exec.exec('git', [...gitOptionArray]);
 
+const escapeShell = function(command:string) {
+  return command.replace(/(["\s'#$`\\])/g,'\\$1');
+};
+
 async function run() {
   try {
     if (!github.context.payload.issue) {
@@ -45,14 +49,14 @@ async function run() {
     await gitExec('checkout', baseRef);
     await gitExec('merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
 
-    console.log("Checking files that only exist in master bracnh and should be deleted.");
+    console.log("\n\n\nChecking files that only exist in master bracnh and should be deleted.");
     await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`);
 
-    console.log("Deleting files.");
+    console.log("\n\n\nDeleting files.");
     // await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
-    exec.exec(`git diff --name-only --diff-filter=A origin/${headRef} -z | xargs -0 git rm `);
+    await exec.exec(`git diff --name-only --diff-filter=A origin/${escapeShell(headRef)} -z | xargs -0 git rm `);
 
-    console.log("Ammending deleted files to merge commit");
+    console.log("\n\n\nAmmending deleted files to merge commit");
     await gitExec('commit', '--amend', '--no-edit');
 
     await gitExec('push', pullRequestHtmlUrl);
