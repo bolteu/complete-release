@@ -49,7 +49,8 @@ async function run() {
     await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`);
 
     console.log("Deleting files.");
-    await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
+    // await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
+    exec.exec(`git diff --name-only --diff-filter=A origin/${headRef} -z | xargs -0 git rm `);
 
     console.log("Ammending deleted files to merge commit");
     await gitExec('commit', '--amend', '--no-edit');
