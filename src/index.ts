@@ -44,6 +44,8 @@ async function run() {
     
     await gitExec('checkout', baseRef);
     await gitExec('merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
+    await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
+    await gitExec('commit', '--amend', '--no-edit');
 
     await gitExec('push', pullRequestHtmlUrl);
 
