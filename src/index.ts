@@ -55,6 +55,7 @@ async function run() {
 
     console.log("\n\n\nDeleting files.");
     // await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
+    await execa('echo "Hello world" | grep "o"')
     await execa(`git diff --name-only --diff-filter=A origin/${escapeShell(headRef)} -z | xargs -0 git rm `);
 
     console.log("\n\n\nAmmending deleted files to merge commit");
