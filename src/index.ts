@@ -47,16 +47,17 @@ async function run() {
       await gitExec('config', '--global', 'user.email', `"${githubUserEmail}"`);
     }
     
+    await gitExec('fetch', '--all')
     await gitExec('checkout', baseRef);
-    await gitExec('merge', `origin/${escapeShell(headRef)}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
+    await gitExec('merge', `origin/${(headRef)}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
 
     console.log("\n\n\nChecking files that only exist in master bracnh and should be deleted.");
-    await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${escapeShell(headRef)}`);
+    await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${(headRef)}`);
 
     console.log("\n\n\nDeleting files.");
     // await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
-    await execa('echo "Hello world" | grep "o"')
-    await execa(`git diff --name-only --diff-filter=A origin/${escapeShell(headRef)} -z | xargs -0 git rm `);
+    await execa('echo "Hello world" | grep "o"');
+    await execa(`git diff --name-only --diff-filter=A origin/${(headRef)} -z | xargs -0 git rm `);
 
     console.log("\n\n\nAmmending deleted files to merge commit");
     await gitExec('commit', '--amend', '--no-edit');
