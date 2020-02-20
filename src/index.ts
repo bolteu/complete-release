@@ -46,9 +46,9 @@ async function run() {
     
     await exec.exec(`git checkout ${baseRef}`);
     try {
-      await exec.exec(`git merge origin/${(headRef)} --allow-unrelated-histories --no-ff`);
+      await exec.exec(`git merge --no-ff origin/${(headRef)} --allow-unrelated-histories`);
     } catch (e) {
-      console.log("\n\n\ngit merge returned non-zero status code, checking for conflicts.");
+      console.log("\n\n\n git merge returned non-zero status code, checking for conflicts.");
 
       let confilctsOutput = '';
       const conflictsListener = {
@@ -61,16 +61,14 @@ async function run() {
         console.log(`Found conflicts: \n${confilctsOutput}\nResolving by checkinbg out 'theirs'`);
         await exec.exec('git checkout --theirs .');
         await exec.exec('git add .');
-        await exec.exec(`git commit -im'Merge remote-tracking branch origin/${headRef}'`);
+        await exec.exec(`git commit`, [`-m'Merge remote-tracking branch origin/${headRef}'`]);
       } else {
         console.log('No conflicts found, throwing error');
         throw(e);
       }
     }
 
-    
-  
-    // await gitExec('push', pullRequestHtmlUrl);
+    await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
     if (shouldTagBaseBranch) {
       if (!tag) {
@@ -94,7 +92,7 @@ async function run() {
       }
       console.log(`tag: ${tag}`);
       await exec.exec(`git tag ${tag}`);
-      // await gitExec('push', pullRequestHtmlUrl, tag);
+      await exec.exec(`git push ${pullRequestHtmlUrl} ${tag}`);
     }
 
 
