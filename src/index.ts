@@ -1,10 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as exec from '@actions/exec';
-import execa from 'execa';
 import fetch from 'node-fetch';
-
-const gitExec = (...gitOptionArray:string[]) => execa('git', [...gitOptionArray]);
 
 const escapeShell = function(command:string) {
   return command.replace(/(["\s'#$`\\])/g,'\\$1');
@@ -40,28 +37,39 @@ async function run() {
     const baseRef:string = pullRequest.base.ref;
 
     if (githubUserName) {
-      await gitExec('config', '--global', 'user.name', `"${githubUserName}"`);
+      await exec.exec(`git config --global user.name "${githubUserName}"`);
     }
 
     if (githubUserEmail) {
-      await gitExec('config', '--global', 'user.email', `"${githubUserEmail}"`);
+      await exec.exec(`git config --global user.email "${githubUserEmail}"`);
     }
     
-    await gitExec('fetch', '--all')
-    await gitExec('checkout', baseRef);
-    await gitExec('merge', `origin/${(headRef)}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
+    await exec.exec(`git checkout ${baseRef}`);
+    try {
+      await exec.exec(`git merge origin/${(headRef)} --allow-unrelated-histories --no-ff`);
+    } catch (e) {
+      console.log("\n\n\ngit merge returned non-zero status code, checking for conflicts.");
 
-    console.log("\n\n\nChecking files that only exist in master bracnh and should be deleted.");
-    await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${(headRef)}`);
+      let confilctsOutput = '';
+      const conflictsListener = {
+        stdout: (data: Buffer) => {
+          confilctsOutput += data.toString();
+        }
+      };
+      await exec.exec('git ls-files -u', undefined, { listeners: conflictsListener });
+      if (confilctsOutput.length > 0) {
+        console.log(`Found conflicts: \n${confilctsOutput}\nResolving by checkinbg out 'theirs'`);
+        await exec.exec('git checkout --theirs .');
+        await exec.exec('git add .');
+        await exec.exec(`git commit -im'Merge remote-tracking branch origin/${headRef}'`);
+      } else {
+        console.log('No conflicts found, throwing error');
+        throw(e);
+      }
+    }
 
-    console.log("\n\n\nDeleting files.");
-    // await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
-    await execa('echo "Hello world" | grep "o"');
-    await execa(`git diff --name-only --diff-filter=A origin/${(headRef)} -z | xargs -0 git rm `);
-
-    console.log("\n\n\nAmmending deleted files to merge commit");
-    await gitExec('commit', '--amend', '--no-edit');
-
+    
+  
     // await gitExec('push', pullRequestHtmlUrl);
 
     if (shouldTagBaseBranch) {
@@ -85,7 +93,7 @@ async function run() {
         myError && console.warn(myError)
       }
       console.log(`tag: ${tag}`);
-      await gitExec('tag', tag);
+      await exec.exec(`git tag ${tag}`);
       // await gitExec('push', pullRequestHtmlUrl, tag);
     }
 
