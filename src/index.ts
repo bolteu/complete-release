@@ -54,15 +54,12 @@ async function run() {
 
     console.log("\n\n\nDeleting files.");
     // await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
-    let files;
-    await exec.exec(`git diff --name-only --diff-filter=A origin/${headRef} -z`, undefined, { listeners: { stdout : (str) => { files = str.toString('utf8') }} });
-    console.log("\n Files: ", files);
-    // exec.exec(`git rm ${files}`);
+    await exec.exec(`git diff --name-only --diff-filter=A origin/${escapeShell(headRef)} -z | xargs -0 git rm `);
 
     console.log("\n\n\nAmmending deleted files to merge commit");
     await gitExec('commit', '--amend', '--no-edit');
 
-    // await gitExec('push', pullRequestHtmlUrl);
+    await gitExec('push', pullRequestHtmlUrl);
 
     if (shouldTagBaseBranch) {
       if (!tag) {
@@ -86,7 +83,7 @@ async function run() {
       }
       console.log(`tag: ${tag}`);
       await gitExec('tag', tag);
-      // await gitExec('push', pullRequestHtmlUrl, tag);
+      await gitExec('push', pullRequestHtmlUrl, tag);
     }
 
 
