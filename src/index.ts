@@ -1,9 +1,10 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as exec from '@actions/exec';
+import execa from 'execa';
 import fetch from 'node-fetch';
 
-const gitExec = (...gitOptionArray:string[]) => exec.exec('git', [...gitOptionArray]);
+const gitExec = (...gitOptionArray:string[]) => execa('git', [...gitOptionArray]);
 
 const escapeShell = function(command:string) {
   return command.replace(/(["\s'#$`\\])/g,'\\$1');
@@ -47,20 +48,19 @@ async function run() {
     }
     
     await gitExec('checkout', baseRef);
-    await gitExec('merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
+    await gitExec('merge', `origin/${escapeShell(headRef)}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
 
     console.log("\n\n\nChecking files that only exist in master bracnh and should be deleted.");
-    await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`);
+    await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${escapeShell(headRef)}`);
 
     console.log("\n\n\nDeleting files.");
     // await gitExec('diff', '--name-only', '--diff-filter=A', `origin/${headRef}`, '-z', '|', 'xargs', '-0', 'git', 'rm' );
-    await exec.exec('echo "Hello world" | grep "o"');
-    await exec.exec(`git diff --name-only --diff-filter=A origin/${escapeShell(headRef)} -z | xargs -0 git rm `);
+    await execa(`git diff --name-only --diff-filter=A origin/${escapeShell(headRef)} -z | xargs -0 git rm `);
 
     console.log("\n\n\nAmmending deleted files to merge commit");
     await gitExec('commit', '--amend', '--no-edit');
 
-    await gitExec('push', pullRequestHtmlUrl);
+    // await gitExec('push', pullRequestHtmlUrl);
 
     if (shouldTagBaseBranch) {
       if (!tag) {
@@ -84,7 +84,7 @@ async function run() {
       }
       console.log(`tag: ${tag}`);
       await gitExec('tag', tag);
-      await gitExec('push', pullRequestHtmlUrl, tag);
+      // await gitExec('push', pullRequestHtmlUrl, tag);
     }
 
 
