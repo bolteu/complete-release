@@ -3,7 +3,9 @@ import * as github from '@actions/github';
 import * as exec from '@actions/exec';
 import fetch from 'node-fetch';
 
-const gitExec = (...gitOptionArray:string[]) => exec.exec('git', [...gitOptionArray]);
+const escapeShell = function(command:string) {
+  return command.replace(/(["\s'#$`\\])/g,'\\$1');
+};
 
 async function run() {
   try {
@@ -35,17 +37,38 @@ async function run() {
     const baseRef:string = pullRequest.base.ref;
 
     if (githubUserName) {
-      await gitExec('config', '--global', 'user.name', `"${githubUserName}"`);
+      await exec.exec(`git config --global user.name "${githubUserName}"`);
     }
 
     if (githubUserEmail) {
-      await gitExec('config', '--global', 'user.email', `"${githubUserEmail}"`);
+      await exec.exec(`git config --global user.email "${githubUserEmail}"`);
     }
     
-    await gitExec('checkout', baseRef);
-    await gitExec('merge', `origin/${headRef}`, '--allow-unrelated-histories', '--strategy-option', 'theirs');
+    await exec.exec(`git checkout ${baseRef}`);
+    try {
+      await exec.exec(`git merge --no-ff origin/${(headRef)} --allow-unrelated-histories`);
+    } catch (e) {
+      console.log("\n\n\n git merge returned non-zero status code, checking for conflicts.");
 
-    await gitExec('push', pullRequestHtmlUrl);
+      let confilctsOutput = '';
+      const conflictsListener = {
+        stdout: (data: Buffer) => {
+          confilctsOutput += data.toString();
+        }
+      };
+      await exec.exec('git ls-files -u', undefined, { listeners: conflictsListener });
+      if (confilctsOutput.length > 0) {
+        console.log(`Found conflicts: \n${confilctsOutput}\nResolving by checkinbg out 'theirs'`);
+        await exec.exec('git checkout --theirs .');
+        await exec.exec('git add .');
+        await exec.exec(`git commit`, [`-m'Merge remote-tracking branch origin/${headRef}'`]);
+      } else {
+        console.log('No conflicts found, throwing error');
+        throw(e);
+      }
+    }
+
+    await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
     if (shouldTagBaseBranch) {
       if (!tag) {
@@ -68,8 +91,8 @@ async function run() {
         myError && console.warn(myError)
       }
       console.log(`tag: ${tag}`);
-      await gitExec('tag', tag);
-      await gitExec('push', pullRequestHtmlUrl, tag);
+      await exec.exec(`git tag ${tag}`);
+      await exec.exec(`git push ${pullRequestHtmlUrl} ${tag}`);
     }
 
 
