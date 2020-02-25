@@ -45,29 +45,28 @@ async function run() {
     }
     
     await exec.exec(`git checkout ${baseRef}`);
-    try {
-      await exec.exec(`git merge --no-ff origin/${(headRef)} --allow-unrelated-histories`);
-    } catch (e) {
-      console.log("\n\n\n git merge returned non-zero status code, checking for conflicts.");
 
-      let confilctsOutput = '';
-      const conflictsListener = {
-        stdout: (data: Buffer) => {
-          confilctsOutput += data.toString();
-        }
-      };
-      await exec.exec('git ls-files -u', undefined, { listeners: conflictsListener });
-      if (confilctsOutput.length > 0) {
-        console.log(`Found conflicts: \n${confilctsOutput}\nResolving by checkinbg out 'theirs'`);
-        await exec.exec('git checkout --theirs .');
-        await exec.exec('git add .');
-        await exec.exec(`git commit`, [`-m'Merge remote-tracking branch origin/${headRef}'`]);
-      } else {
-        console.log('No conflicts found, throwing error');
-        throw(e);
+    console.log(`\n\n Merging ${headRef} into ${baseRef} using '--strategy-option theirs'`);
+
+    await exec.exec(`git merge origin/${headRef} --strategy-option theirs`);
+
+    console.log(`\n\n Checking for deleted files in ${headRef}`);
+
+    let conflictFiles = '';
+    const gitDiffListeners = {
+      stdout: (data: Buffer) => {
+        conflictFiles += data.toString();
       }
-    }
+    };
 
+    await exec.exec(`git diff --name-status --diff-filter=A origin/${headRef}`, undefined, { listeners: gitDiffListeners });
+
+    const filesSeparator = new RegExp(/A\t/g);
+    console.log(`\n\nFiles that was removed in ${headRef}, but still exist in ${baseRef}:\n${conflictFiles.replace(filesSeparator, '')}`);
+    console.log(`\n\nRemoving conflicted files from ${baseRef}`);
+    await exec.exec(`git rm ${conflictFiles.replace(filesSeparator, ' ').replace(/\n/g, '')}`);
+
+    await exec.exec(`git commit --amend --no-edit`);
     await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
     if (shouldTagBaseBranch) {
