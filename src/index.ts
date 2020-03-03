@@ -63,10 +63,12 @@ async function run() {
 
     const filesSeparator = new RegExp(/A\t/g);
     console.log(`\n\nFiles that was removed in ${headRef}, but still exist in ${baseRef}:\n${conflictFiles.replace(filesSeparator, '')}`);
-    console.log(`\n\nRemoving conflicted files from ${baseRef}`);
-    await exec.exec(`git rm ${conflictFiles.replace(filesSeparator, ' ').replace(/\n/g, '')}`);
+    if (conflictFiles.trim().length != 0) {
+      console.log(`\n\nRemoving conflicted files from ${baseRef}`);
+      await exec.exec(`git rm ${conflictFiles.replace(filesSeparator, ' ').replace(/\n/g, '')}`);
+      await exec.exec(`git commit --amend --no-edit`);
+    }
 
-    await exec.exec(`git commit --amend --no-edit`);
     await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
     if (shouldTagBaseBranch) {
