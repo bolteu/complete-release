@@ -22,7 +22,7 @@
     "@actions/core": "^1.2.0",
     "@actions/exec": "^1.0.1",
     "@actions/github": "^1.1.0",
-    "@types/node-fetch": "^2.5.2",
+    "@types/node-fetch": "^2.5.5",
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
