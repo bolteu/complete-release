@@ -19,7 +19,7 @@
   "author": "Pavlo Pakholka",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.0",
+    "@actions/core": "^1.2.4",
     "@actions/exec": "^1.0.1",
     "@actions/github": "^1.1.0",
     "@types/node-fetch": "^2.5.2",
