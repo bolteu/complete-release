@@ -48,9 +48,9 @@ async function run() {
     
     await exec.exec(`git checkout ${baseRef}`);
 
-    console.log(`\n\n Merging ${headRef} into ${baseRef} using '--strategy-option theirs'`);
+    console.log(`\n\n Merging ${headRef} into ${baseRef}`);
 
-    await exec.exec(`git merge origin/${headRef} --allow-unrelated-histories --strategy-option theirs`);
+    await exec.exec(`git merge origin/${headRef} --allow-unrelated-histories`);
 
     console.log(`\n\n Checking for deleted files in ${headRef}`);
 
