@@ -18,6 +18,7 @@ async function run() {
     const githubApiToken:string = core.getInput('github-token');
     const githubUserName:string = core.getInput('github-user-name');
     const githubUserEmail:string = core.getInput('github-user-email');
+    const defaultBranch:string = core.getInput('github-default-branch');
     let tag:string = core.getInput('tag');
     const shouldTagBaseBranch:string = core.getInput('should-tag-base-branch');
 
@@ -44,32 +45,13 @@ async function run() {
       await exec.exec(`git config --global user.email "${githubUserEmail}"`);
     }
 
-    await exec.exec(`git fetch origin ${headRef} ${baseRef}`);
+    await exec.exec(`git fetch origin ${headRef} ${baseRef} ${defaultBranch}`);
     
     await exec.exec(`git checkout ${baseRef}`);
 
     console.log(`\n\n Merging ${headRef} into ${baseRef}`);
 
     await exec.exec(`git merge origin/${headRef} --allow-unrelated-histories`);
-
-    console.log(`\n\n Checking for deleted files in ${headRef}`);
-
-    let conflictFiles = '';
-    const gitDiffListeners = {
-      stdout: (data: Buffer) => {
-        conflictFiles += data.toString();
-      }
-    };
-
-    await exec.exec(`git diff --name-status --diff-filter=A origin/${headRef}`, undefined, { listeners: gitDiffListeners });
-
-    const filesSeparator = new RegExp(/A\t/g);
-    console.log(`\n\nFiles that was removed in ${headRef}, but still exist in ${baseRef}:\n${conflictFiles.replace(filesSeparator, '')}`);
-    if (conflictFiles.trim().length != 0) {
-      console.log(`\n\nRemoving conflicted files from ${baseRef}`);
-      await exec.exec(`git rm ${conflictFiles.replace(filesSeparator, ' ').replace(/\n/g, '')}`);
-      await exec.exec(`git commit --amend --no-edit`);
-    }
 
     await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
@@ -98,6 +80,13 @@ async function run() {
       await exec.exec(`git push ${pullRequestHtmlUrl} ${tag}`);
     }
 
+    console.log(`\n\n Merging ${headRef} into ${defaultBranch}`);
+
+    await exec.exec(`git checkout ${defaultBranch}`);
+
+    await exec.exec(`git merge origin/${defaultBranch} --allow-unrelated-histories`);
+
+    await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
     const time = (new Date()).toTimeString();
     core.setOutput("time", time);

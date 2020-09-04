@@ -13,6 +13,10 @@ inputs:
     description: 'Github user email'
     required: false
     default: null
+  github-default-branch:
+    description: 'Github default branch'
+    required: false
+    default: 'dev'
   should-tag-base-branch:
     description: 'Tag base branch after merging. If `tag` parameter is not set - will use version from package.json'
     required: false
