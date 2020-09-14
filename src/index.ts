@@ -51,7 +51,7 @@ async function run() {
 
     console.log(`\n\n Merging ${headRef} into ${baseRef}`);
 
-    await exec.exec(`git merge origin/${headRef} --allow-unrelated-histories`);
+    await exec.exec(`git merge origin/${headRef} --allow-unrelated-histories --ff`);
 
     await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
