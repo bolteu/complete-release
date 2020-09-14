@@ -49,13 +49,15 @@ async function run() {
 
     console.log(`Checking out latest ${baseRef}`);
 
-    await exec.exec(`git fetch ${pullRequestHtmlUrl} ${headRef} ${baseRef} ${defaultBranch}`);
+    await exec.exec(`git fetch`);
     await exec.exec(`git checkout ${baseRef}`);
     await exec.exec(`git pull ${pullRequestHtmlUrl} ${baseRef}`);
 
     console.log(`\n\n Merging ${headRef} into ${baseRef}`);
 
-    await exec.exec(`git merge origin/${headRef} --allow-unrelated-histories --ff`);
+    await exec.exec(`git checkout --progress --force -B ${headRef} refs/remotes/origin/${headRef}`);
+    await exec.exec(`git checkout ${baseRef}`);
+    await exec.exec(`git merge ${headRef} --allow-unrelated-histories`);
 
     await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
@@ -84,11 +86,11 @@ async function run() {
       await exec.exec(`git push ${pullRequestHtmlUrl} ${tag}`);
     }
 
-    console.log(`\n\n Merging ${defaultBranch} into ${baseRef}`);
+    console.log(`\n\n Merging ${baseRef} into ${defaultBranch}`);
 
     await exec.exec(`git checkout ${defaultBranch}`);
 
-    await exec.exec(`git merge origin/${defaultBranch} --allow-unrelated-histories`);
+    await exec.exec(`git merge origin/${baseRef} --allow-unrelated-histories`);
 
     await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
