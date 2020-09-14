@@ -37,17 +37,21 @@ async function run() {
     const headRef:string = pullRequest.head.ref;
     const baseRef:string = pullRequest.base.ref;
 
+
+    console.log('Setting config parameters');
     if (githubUserName) {
       await exec.exec(`git config --global user.name "${githubUserName}"`);
     }
-
     if (githubUserEmail) {
       await exec.exec(`git config --global user.email "${githubUserEmail}"`);
     }
+    await exec.exec(`git config --global pull.rebase false`);
+
+    console.log(`Checking out latest ${baseRef}`);
 
     await exec.exec(`git fetch ${pullRequestHtmlUrl} ${headRef} ${baseRef} ${defaultBranch}`);
-    
     await exec.exec(`git checkout ${baseRef}`);
+    await exec.exec(`git pull ${pullRequestHtmlUrl} ${baseRef}`);
 
     console.log(`\n\n Merging ${headRef} into ${baseRef}`);
 
@@ -80,7 +84,7 @@ async function run() {
       await exec.exec(`git push ${pullRequestHtmlUrl} ${tag}`);
     }
 
-    console.log(`\n\n Merging ${headRef} into ${defaultBranch}`);
+    console.log(`\n\n Merging ${defaultBranch} into ${baseRef}`);
 
     await exec.exec(`git checkout ${defaultBranch}`);
 
