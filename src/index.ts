@@ -18,7 +18,7 @@ async function run() {
     const githubApiToken:string = core.getInput('github-token');
     const githubUserName:string = core.getInput('github-user-name');
     const githubUserEmail:string = core.getInput('github-user-email');
-    const defaultBranch:string = core.getInput('github-default-branch');
+    const defaultBranch:string = core.getInput('github-default-branch') || "dev";
     let tag:string = core.getInput('tag');
     const shouldTagBaseBranch:string = core.getInput('should-tag-base-branch');
 
