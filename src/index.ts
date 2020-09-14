@@ -45,7 +45,7 @@ async function run() {
       await exec.exec(`git config --global user.email "${githubUserEmail}"`);
     }
 
-    await exec.exec(`git fetch origin ${headRef} ${baseRef} ${defaultBranch}`);
+    await exec.exec(`git fetch ${pullRequestHtmlUrl} ${headRef} ${baseRef} ${defaultBranch}`);
     
     await exec.exec(`git checkout ${baseRef}`);
 
