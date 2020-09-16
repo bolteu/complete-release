@@ -57,7 +57,7 @@ async function run() {
 
     await exec.exec(`git checkout --progress --force -B ${headRef} refs/remotes/origin/${headRef}`);
     await exec.exec(`git checkout ${baseRef}`);
-    await exec.exec(`git merge ${headRef} --allow-unrelated-histories`);
+    await exec.exec(`git merge ${headRef} --allow-unrelated-histories --no-ff`);
 
     await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
@@ -90,7 +90,7 @@ async function run() {
 
     await exec.exec(`git checkout ${defaultBranch}`);
 
-    await exec.exec(`git merge origin/${baseRef} --allow-unrelated-histories`);
+    await exec.exec(`git merge ${baseRef} --allow-unrelated-histories --no-ff`);
 
     await exec.exec(`git push ${pullRequestHtmlUrl}`);
 
